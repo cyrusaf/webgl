@@ -1,11 +1,12 @@
 class GL {
   static shader_stride = 6
   static shader_index  = 3
-  constructor(width, height) {
+  constructor(canvas) {
 
     // Instance variables
-    this.width = width
-    this.height = height
+    this.canvas = canvas
+    this.width  = canvas.width
+    this.height = canvas.height
     this.entities = []
     this.camera = {
       pos: [0.0, 0.0, 10.0],
@@ -44,7 +45,7 @@ class GL {
     this.proj_matrix = new Matrix4()
 
     // Set perpective and send to shaders
-    this.updateCamera()
+    this.resize()
   }
 
   createShaderSources() {
@@ -79,13 +80,27 @@ class GL {
     Entity2.initVertexBuffers()
   }
 
+  resize() {
+    let height = $(window).height() - 100
+    let width  = $(window).width()
+
+    this.canvas.width  = width
+    this.canvas.height = height
+    this.width  = width
+    this.height = height
+
+    gl.viewport(0, 0, this.width, this.height)
+    this.updateCamera()
+    this.draw()
+  }
+
   updateCamera() {
     let look_at = [this.camera.pos[0], this.camera.pos[1], this.camera.pos[2]]
     look_at[0] += this.camera.dist*Math.sin(this.camera.angle[1])*Math.cos(this.camera.angle[0])
     look_at[2] += this.camera.dist*Math.sin(this.camera.angle[1])*Math.sin(this.camera.angle[0])
     look_at[1] += this.camera.dist*Math.cos(this.camera.angle[1])
 
-    this.proj_matrix.setPerspective(30, 1, 1, 100)
+    this.proj_matrix.setPerspective(30, this.width/this.height, 1, 100)
     this.proj_matrix.lookAt(...this.camera.pos, ...look_at, 0, 1, 0)
     gl.uniformMatrix4fv(this.u_ProjMatrix, false, this.proj_matrix.elements)
   }

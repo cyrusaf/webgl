@@ -1,8 +1,10 @@
-let canvas = document.getElementById('webgl')
+var canvas = document.getElementById('webgl')
 var gl = getWebGLContext(canvas)
 
 function main() {
-  let glInst = new GL(canvas.width, canvas.height)
+
+  let glInst = new GL(canvas)
+
   glInst.initVertexBuffers()
 
   let entity = new Entity()
@@ -26,7 +28,6 @@ function main() {
     diff[2] += glInst.camera.dist*Math.sin(glInst.camera.angle[1])*Math.sin(glInst.camera.angle[0])
     diff[1] += glInst.camera.dist*Math.cos(glInst.camera.angle[1])
     normalize(diff, 1)
-    console.log(diff)
 
     let speed = 0.5
     let angle_speed = 0.05
@@ -80,6 +81,10 @@ function main() {
       $('#look_at').html(glInst.camera.angle[0] + ", " + glInst.camera.angle[1]);
       e.preventDefault(); // prevent the default action (scroll / move caret)
   });
+
+  $(window).resize(function() {
+    glInst.resize()
+  })
 }
 
 
