@@ -2,6 +2,8 @@ class Entity {
   static vertexBuffer = gl.createBuffer()
 
   constructor() {
+    this.pos = [0, 0, 0]
+
     // Check vertex buffer
     if (!this.constructor.vertexBuffer) {
       console.log('Failed to create the buffer object')
@@ -89,6 +91,7 @@ class Entity {
 
   draw(u_ViewMatrix, view_matrix) {
     gl.bindBuffer(gl.ARRAY_BUFFER, this.constructor.vertexBuffer)
+    view_matrix.setTranslate(...this.pos);
     gl.uniformMatrix4fv(u_ViewMatrix, false, view_matrix.elements)
     gl.drawArrays(gl.TRIANGLES, 0, this.n_verts)
   }

@@ -6,6 +6,8 @@ class GL {
     this.width = width;
     this.height = height;
 
+    this.entities = []
+
     // Get the rendering context for WebGL
     if (!gl) {
       console.log('Failed to get the rendering context for WebGL')
@@ -66,6 +68,16 @@ class GL {
       'void main() {\n' +
       '  gl_FragColor = v_Color;\n' +
       '}\n'
+  }
+
+  drawEntity(entity) {
+    entity.draw(this.u_ViewMatrix, this.view_matrix)
+  }
+
+  draw() {
+    for (let entity of this.entities) {
+      this.drawEntity(entity)
+    }
   }
 
 }
