@@ -18,6 +18,9 @@ function main() {
   glInst.entities.push(entity2)
   glInst.entities.push(entity3)
 
+  let grid = new Grid()
+  glInst.entities.push(grid)
+
   glInst.draw()
 
 

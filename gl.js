@@ -9,8 +9,8 @@ class GL {
     this.height = canvas.height
     this.entities = []
     this.camera = {
-      pos: [0.0, 0.0, 10.0],
-      angle: [Math.PI/2, -1*Math.PI/2],
+      pos: [0.0, 9.0, 20.0],
+      angle: [Math.PI/2, -1*Math.PI/1.6],
       dist: 5.0
     }
 
@@ -28,7 +28,7 @@ class GL {
     }
 
     // Specify the color for clearing <canvas>
-    gl.clearColor(0.0, 0.0, 0.0, 1.0)
+    gl.clearColor(52/255, 152/255, 219/255, 1.0)
     gl.enable(gl.DEPTH_TEST)
 
     // Set the viewport
@@ -78,6 +78,7 @@ class GL {
   initVertexBuffers() {
     Entity.initVertexBuffers()
     Entity2.initVertexBuffers()
+    Grid.initVertexBuffers()
   }
 
   resize() {

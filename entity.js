@@ -66,6 +66,7 @@ class Entity {
     // Bind buffer and add data
     gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer)
     gl.bufferData(gl.ARRAY_BUFFER, this.verts, gl.STATIC_DRAW)
+
   }
 
   draw(u_ViewMatrix, view_matrix) {
