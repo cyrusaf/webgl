@@ -4,13 +4,13 @@ class GL {
   constructor(width, height) {
 
     // Instance variables
-    this.width = width;
-    this.height = height;
+    this.width = width
+    this.height = height
     this.entities = []
     this.camera = {
-      pos: [0, 2, 16],
-      look_at: [0, 2, 11],
-
+      pos: [0.0, 0.0, 10.0],
+      angle: [Math.PI/2, -1*Math.PI/2],
+      dist: 5.0
     }
 
     // Get the rendering context for WebGL
@@ -80,8 +80,13 @@ class GL {
   }
 
   updateCamera() {
+    let look_at = [this.camera.pos[0], this.camera.pos[1], this.camera.pos[2]]
+    look_at[0] += this.camera.dist*Math.sin(this.camera.angle[1])*Math.cos(this.camera.angle[0])
+    look_at[2] += this.camera.dist*Math.sin(this.camera.angle[1])*Math.sin(this.camera.angle[0])
+    look_at[1] += this.camera.dist*Math.cos(this.camera.angle[1])
+
     this.proj_matrix.setPerspective(30, 1, 1, 100)
-    this.proj_matrix.lookAt(...this.camera.pos, ...this.camera.look_at, 0, 1, 0)
+    this.proj_matrix.lookAt(...this.camera.pos, ...look_at, 0, 1, 0)
     gl.uniformMatrix4fv(this.u_ProjMatrix, false, this.proj_matrix.elements)
   }
 

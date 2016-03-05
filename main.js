@@ -21,70 +21,63 @@ function main() {
 
 
   $(document).keydown(function(e) {
-    let diff = [glInst.camera.pos[0] - glInst.camera.look_at[0], glInst.camera.pos[1] - glInst.camera.look_at[1], glInst.camera.pos[2] - glInst.camera.look_at[2]]
+    let diff = [0, 0, 0]
+    diff[0] += glInst.camera.dist*Math.sin(glInst.camera.angle[1])*Math.cos(glInst.camera.angle[0])
+    diff[2] += glInst.camera.dist*Math.sin(glInst.camera.angle[1])*Math.sin(glInst.camera.angle[0])
+    diff[1] += glInst.camera.dist*Math.cos(glInst.camera.angle[1])
     normalize(diff, 1)
+    console.log(diff)
+
     let speed = 0.5
+    let angle_speed = 0.05
       switch(e.which) {
           case 37: // left
-            glInst.camera.look_at[0] -= speed/4
+            glInst.camera.angle[0] -= angle_speed
             break;
 
           case 38: // up
-            glInst.camera.look_at[1] += speed/4
+            glInst.camera.angle[1] += angle_speed
             break;
 
           case 39: // right
-            glInst.camera.look_at[0] += speed/4
+            glInst.camera.angle[0] += angle_speed
             break;
 
           case 40: // down
-            glInst.camera.look_at[1] -= speed/4
-            break;
-
-          case 87: // w
-            glInst.camera.pos[0] -= speed*diff[0]
-            glInst.camera.look_at[0] -= speed*diff[0]
-            glInst.camera.pos[1] -= speed*diff[1]
-            glInst.camera.look_at[1] -= speed*diff[1]
-            glInst.camera.pos[2] -= speed*diff[2]
-            glInst.camera.look_at[2] -= speed*diff[2]
+            glInst.camera.angle[1] -= angle_speed
             break;
 
           case 83: // s
+            glInst.camera.pos[0] -= speed*diff[0]
+            glInst.camera.pos[1] -= speed*diff[1]
+            glInst.camera.pos[2] -= speed*diff[2]
+            break;
+
+          case 87: // w
             glInst.camera.pos[0] += speed*diff[0]
-            glInst.camera.look_at[0] += speed*diff[0]
             glInst.camera.pos[1] += speed*diff[1]
-            glInst.camera.look_at[1] += speed*diff[1]
             glInst.camera.pos[2] += speed*diff[2]
-            glInst.camera.look_at[2] += speed*diff[2]
             break;
 
           case 65: // a
             let d = math.cross(diff, [0, 1, 0])
-            glInst.camera.pos[0] += speed*d[0]
-            glInst.camera.look_at[0] += speed*d[0]
-            glInst.camera.pos[1] += speed*d[1]
-            glInst.camera.look_at[1] += speed*d[1]
-            glInst.camera.pos[2] += speed*d[2]
-            glInst.camera.look_at[2] += speed*d[2]
+            glInst.camera.pos[0] -= speed*d[0]
+            glInst.camera.pos[1] -= speed*d[1]
+            glInst.camera.pos[2] -= speed*d[2]
             break;
 
           case 68: // d
             let d2 = math.cross(diff, [0, 1, 0])
-            console.log(d2)
-            glInst.camera.pos[0] -= speed*d2[0]
-            glInst.camera.look_at[0] -= speed*d2[0]
-            glInst.camera.pos[1] -= speed*d2[1]
-            glInst.camera.look_at[1] -= speed*d2[1]
-            glInst.camera.pos[2] -= speed*d2[2]
-            glInst.camera.look_at[2] -= speed*d2[2]
+            glInst.camera.pos[0] += speed*d2[0]
+            glInst.camera.pos[1] += speed*d2[1]
+            glInst.camera.pos[2] += speed*d2[2]
             break;
 
           default: return; // exit this handler for other keys
       }
       glInst.draw()
       $('#pos').html(glInst.camera.pos[0] + ", " + glInst.camera.pos[1] + ", " + glInst.camera.pos[2]);
-      $('#look_at').html(glInst.camera.look_at[0] + ", " + glInst.camera.look_at[1] + ", " + glInst.camera.look_at[2]);
+      $('#look_at').html(glInst.camera.angle[0] + ", " + glInst.camera.angle[1]);
       e.preventDefault(); // prevent the default action (scroll / move caret)
   });
 }
