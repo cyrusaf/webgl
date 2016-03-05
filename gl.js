@@ -3,10 +3,15 @@ class GL {
   static shader_index  = 3
   constructor(width, height) {
 
+    // Instance variables
     this.width = width;
     this.height = height;
-
     this.entities = []
+    this.camera = {
+      pos: [0, 2, 16],
+      look_at: [0, 2, 11],
+
+    }
 
     // Get the rendering context for WebGL
     if (!gl) {
@@ -39,12 +44,7 @@ class GL {
     this.proj_matrix = new Matrix4()
 
     // Set perpective and send to shaders
-    this.proj_matrix.setPerspective(30, 1, 1, 100);
-    this.proj_matrix.lookAt(3, 3, 7, 0, 0, 0, 0, 1, 0);
-    gl.uniformMatrix4fv(this.u_ProjMatrix, false, this.proj_matrix.elements)
-
-    // Clear color and depth buffer
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    this.updateCamera()
   }
 
   createShaderSources() {
@@ -74,7 +74,22 @@ class GL {
     entity.draw(this.u_ViewMatrix, this.view_matrix)
   }
 
+  initVertexBuffers() {
+    Entity.initVertexBuffers()
+    Entity2.initVertexBuffers()
+  }
+
+  updateCamera() {
+    this.proj_matrix.setPerspective(30, 1, 1, 100)
+    this.proj_matrix.lookAt(...this.camera.pos, ...this.camera.look_at, 0, 1, 0)
+    gl.uniformMatrix4fv(this.u_ProjMatrix, false, this.proj_matrix.elements)
+  }
+
   draw() {
+    // Clear color and depth buffer
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    this.updateCamera()
     for (let entity of this.entities) {
       this.drawEntity(entity)
     }
