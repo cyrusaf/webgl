@@ -39,7 +39,7 @@ function makeGroundGrid() {
 
 	let xcount = 100;			// # of lines to draw in x,y to make the grid.
 	let ycount = 100;
-	let xymax	= 50.0;			// grid size; extends to cover +/-xymax in x and y.
+	let xymax	= 100.0;			// grid size; extends to cover +/-xymax in x and y.
  	let xColr = new Float32Array([1.0, 1.0, 0.3]);	// bright yellow
  	let yColr = new Float32Array([1.0, 1.0, 1.0]);	// bright green.
   let floatsPerVertex = 6
