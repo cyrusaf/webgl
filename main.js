@@ -9,11 +9,14 @@ function main() {
 
   let entity = new Entity()
   let entity2 = new Entity()
-  let entity3 = new Entity2()
+  let entity3 = new Entity()
 
   entity.pos = [-2, 3, 0]
+
   entity2.pos = [1, 0, 0]
-  entity3.setAnchor(entity, [2, 0, 0])
+  entity3.setAnchor(entity, [1, 0, 0])
+  entity3.setRotationPoint([1, 0, 0])
+  entity3.rotation = [45, 0, 1, 0]
   glInst.entities.push(entity)
   glInst.entities.push(entity2)
   glInst.entities.push(entity3)

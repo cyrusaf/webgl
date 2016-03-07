@@ -1,9 +1,9 @@
 class Entity {
   static vertexBuffer = gl.createBuffer()
   static verts = new Float32Array([
-    0.0,  0.0,   0.0,  1.0,  0.0,  0.0, // The back green one
-    1.0,  0.0,   0.0,  0.0,  1.0,  0.0,
-    0.0,  0.0,  -1.0,  0.0,  0.0,  1.0,
+    0.0,  0.0,   0.0,  1.0,  1.0,  0.0, // The back green one
+    1.0,  0.0,   0.0,  1.0,  1.0,  0.0,
+    0.0,  0.0,  -1.0,  1.0,  1.0,  0.0,
 
     1.0,  0.0,  -1.0,  1.0,  0.0,  0.0,
     1.0,  0.0,   0.0,  0.0,  1.0,  0.0,
@@ -52,8 +52,10 @@ class Entity {
   static n_verts = 12*3
 
   constructor() {
-    this.pos    = [0, 0, 0]
-    this.anchor = null
+    this.pos            = [0, 0, 0] // x, y, z
+    this.anchor         = null
+    this.rotation       = [0, 0, 1, 0] // angle, x, y, z
+    this.rotation_point = [0, 0, 0]
 
     // Check vertex buffer
     if (!this.constructor.vertexBuffer) {
@@ -75,6 +77,10 @@ class Entity {
       parent: parent,
       pos: pos
     }
+  }
+
+  setRotationPoint(point) {
+    this.rotation_point = point
   }
 
   draw(u_ViewMatrix, view_matrix) {
@@ -107,9 +113,17 @@ class Entity {
     // If anchored, update pos based off parent
     if (this.anchor) {
       view_matrix.translate(...this.anchor.parent.pos)
+      view_matrix.rotate(...this.anchor.parent.rotation)
       view_matrix.translate(...this.anchor.pos)
     }
-    view_matrix.translate(...this.pos);
+    view_matrix.translate(...this.pos)
+    view_matrix.translate(...this.rotation_point)
+    view_matrix.rotate(...this.rotation)
+    view_matrix.translate(...this.rotation_point.map(function(e){
+      return e*-1
+    }))
+
+    // Update based off of values of view_matrix
     gl.uniformMatrix4fv(u_ViewMatrix, false, view_matrix.elements)
     gl.drawArrays(gl.TRIANGLES, 0, this.constructor.n_verts)
   }
