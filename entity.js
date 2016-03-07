@@ -52,7 +52,8 @@ class Entity {
   static n_verts = 12*3
 
   constructor() {
-    this.pos = [0, 0, 0]
+    this.pos    = [0, 0, 0]
+    this.anchor = null
 
     // Check vertex buffer
     if (!this.constructor.vertexBuffer) {
@@ -67,6 +68,13 @@ class Entity {
     gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer)
     gl.bufferData(gl.ARRAY_BUFFER, this.verts, gl.STATIC_DRAW)
 
+  }
+
+  setAnchor(parent, pos) {
+    this.anchor = {
+      parent: parent,
+      pos: pos
+    }
   }
 
   draw(u_ViewMatrix, view_matrix) {
@@ -91,7 +99,17 @@ class Entity {
     gl.vertexAttribPointer(a_Color, 3, gl.FLOAT, false, FSIZE * GL.shader_stride, FSIZE * GL.shader_index)
     gl.enableVertexAttribArray(a_Color)
 
-    view_matrix.setTranslate(...this.pos);
+
+    // Update position of object
+    // TODO Add rotation
+    view_matrix.setTranslate(0,0,0);
+
+    // If anchored, update pos based off parent
+    if (this.anchor) {
+      view_matrix.translate(...this.anchor.parent.pos)
+      view_matrix.translate(...this.anchor.pos)
+    }
+    view_matrix.translate(...this.pos);
     gl.uniformMatrix4fv(u_ViewMatrix, false, view_matrix.elements)
     gl.drawArrays(gl.TRIANGLES, 0, this.constructor.n_verts)
   }

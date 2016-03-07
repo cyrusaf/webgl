@@ -11,9 +11,9 @@ function main() {
   let entity2 = new Entity()
   let entity3 = new Entity2()
 
-  entity.pos = [-2, 1, 0]
+  entity.pos = [-2, 3, 0]
   entity2.pos = [1, 0, 0]
-  entity2.pos = [1, -2, 0]
+  entity3.setAnchor(entity, [2, 0, 0])
   glInst.entities.push(entity)
   glInst.entities.push(entity2)
   glInst.entities.push(entity3)
