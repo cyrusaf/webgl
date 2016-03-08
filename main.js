@@ -8,7 +8,7 @@ function main() {
   glInst.initVertexBuffers()
 
   let entity = new Entity()
-  let entity2 = new Entity()
+  let entity2 = new Entity2()
   let entity3 = new Entity()
 
   entity.pos = [-2, 3, 0]
