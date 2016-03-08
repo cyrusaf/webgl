@@ -111,11 +111,23 @@ class Entity {
     view_matrix.setTranslate(0,0,0);
 
     // If anchored, update pos based off parent
-    if (this.anchor) {
-      view_matrix.translate(...this.anchor.parent.pos)
-      view_matrix.rotate(...this.anchor.parent.rotation)
-      view_matrix.translate(...this.anchor.pos)
+    let anchors = []
+    let anchor = this.anchor
+    while (anchor) {
+      anchors.unshift(anchor)
+      anchor = anchor.parent.anchor
     }
+
+    for (anchor of anchors) {
+      view_matrix.translate(...anchor.parent.pos)
+      view_matrix.translate(...anchor.parent.rotation_point)
+      view_matrix.rotate(...anchor.parent.rotation)
+      view_matrix.translate(...anchor.parent.rotation_point.map(function(e){
+        return e*-1
+      }))
+      view_matrix.translate(...anchor.pos)
+    }
+
     view_matrix.translate(...this.pos)
     view_matrix.translate(...this.rotation_point)
     view_matrix.rotate(...this.rotation)
