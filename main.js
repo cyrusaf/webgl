@@ -1,35 +1,56 @@
 var canvas = document.getElementById('webgl')
 var gl = getWebGLContext(canvas)
+var glInst
+var delta_theta = 1
+var last_called
+
+function mainLoop() {
+  let fps
+  if (!last_called) {
+    last_called = Date.now()
+    fps = 0
+    window.requestAnimationFrame(mainLoop)
+    return
+  }
+  let delta = (Date.now() - last_called)/1000
+  last_called = Date.now()
+
+  if (glInst.entities[1].rotation[0] >= 60) {
+    delta_theta = -100*delta
+  } else if (glInst.entities[1].rotation[0] <= 0) {
+    delta_theta = 100*delta
+  }
+
+  for (let entity of glInst.entities) {
+    if (entity.constructor.name != 'Entity') { continue }
+
+    entity.rotation[0] += delta_theta
+  }
+  glInst.draw()
+  window.requestAnimationFrame(mainLoop)
+}
 
 function main() {
 
-  let glInst = new GL(canvas)
-
+  // Init WebGL
+  glInst = new GL(canvas)
   glInst.initVertexBuffers()
 
-  let entity  = new Entity()
-  let entity2 = new Entity()
-  let entity3 = new Entity()
-
-  entity.pos = [-2, 3, 0]
-
-  entity2.setAnchor(entity, [2, 0, 0])
-  entity2.setRotationPoint([-1, 0, -1])
-  entity2.rotation = [70, 0, 1, 0]
-
-  entity3.setAnchor(entity2, [2, 0, 0])
-  entity3.setRotationPoint([-1, 0, -1])
-  entity3.rotation = [30, 0, 1, 0]
-
-  glInst.entities.push(entity)
-  glInst.entities.push(entity2)
-  glInst.entities.push(entity3)
+  // Create entities
+  for (let i = 0; i < 6; i++) {
+    let entity = new Entity()
+    if (i != 0) {
+      entity.setAnchor(glInst.entities[i-1], [2, 0, 0])
+      entity.setRotationPoint([-1, 0, -1])
+      entity.rotation = [60, 0, 1, 0]
+    }
+    glInst.entities.push(entity)
+  }
 
   let grid = new Grid()
   glInst.entities.push(grid)
 
-  glInst.draw()
-
+  window.requestAnimationFrame(mainLoop)
 
 
   $(document).keydown(function(e) {
@@ -86,7 +107,6 @@ function main() {
 
           default: return; // exit this handler for other keys
       }
-      glInst.draw()
       $('#pos').html(glInst.camera.pos[0] + ", " + glInst.camera.pos[1] + ", " + glInst.camera.pos[2]);
       $('#look_at').html(glInst.camera.angle[0] + ", " + glInst.camera.angle[1]);
       e.preventDefault(); // prevent the default action (scroll / move caret)
@@ -96,6 +116,9 @@ function main() {
     glInst.resize()
   })
 }
+
+
+
 
 
 function normalize(point, scale) {
