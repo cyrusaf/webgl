@@ -83,7 +83,7 @@ class Entity {
     this.rotation_point = point
   }
 
-  draw(u_ViewMatrix, view_matrix) {
+  draw(uLoc_MvpMatrix, mvp_matrix, uLoc_ModelMatrix, model_matrix, uLoc_NormalMatrix, normal_matrix) {
     let FSIZE = this.constructor.verts.BYTES_PER_ELEMENT
     gl.bindBuffer(gl.ARRAY_BUFFER, this.constructor.vertexBuffer)
 
@@ -96,19 +96,17 @@ class Entity {
     gl.vertexAttribPointer(a_Position, 3, gl.FLOAT, false, FSIZE * GL.shader_stride, 0)
     gl.enableVertexAttribArray(a_Position)
 
-    // Get a_Color
-    var a_Color = gl.getAttribLocation(gl.program, 'a_Color')
-    if(a_Color < 0) {
-      console.log('Failed to get the storage location of a_Color');
+    let a_Normal = gl.getAttribLocation(gl.program, 'a_Normal')
+    if(a_Position < 0) {
+      console.log('Failed to get the storage location of a_Normal')
       return -1
     }
-    gl.vertexAttribPointer(a_Color, 3, gl.FLOAT, false, FSIZE * GL.shader_stride, FSIZE * GL.shader_index)
-    gl.enableVertexAttribArray(a_Color)
+    gl.vertexAttribPointer(a_Normal, 3, gl.FLOAT, false, FSIZE * GL.shader_stride, 0)
+    gl.enableVertexAttribArray(a_Normal)
 
 
     // Update position of object
-    // TODO Add rotation
-    view_matrix.setTranslate(0,0,0);
+    model_matrix.setTranslate(0,0,0)
 
     // If anchored, update pos based off parent
     let anchors = []
@@ -119,24 +117,32 @@ class Entity {
     }
 
     for (anchor of anchors) {
-      view_matrix.translate(...anchor.parent.pos)
-      view_matrix.translate(...anchor.parent.rotation_point)
-      view_matrix.rotate(...anchor.parent.rotation)
-      view_matrix.translate(...anchor.parent.rotation_point.map(function(e){
+      model_matrix.translate(...anchor.parent.pos)
+      model_matrix.translate(...anchor.parent.rotation_point)
+      model_matrix.rotate(...anchor.parent.rotation)
+      model_matrix.translate(...anchor.parent.rotation_point.map(function(e){
         return e*-1
       }))
-      view_matrix.translate(...anchor.pos)
+      model_matrix.translate(...anchor.pos)
     }
 
-    view_matrix.translate(...this.pos)
-    view_matrix.translate(...this.rotation_point)
-    view_matrix.rotate(...this.rotation)
-    view_matrix.translate(...this.rotation_point.map(function(e){
+    model_matrix.translate(...this.pos)
+    model_matrix.translate(...this.rotation_point)
+    model_matrix.rotate(...this.rotation)
+    model_matrix.translate(...this.rotation_point.map(function(e){
       return e*-1
     }))
 
     // Update based off of values of view_matrix
-    gl.uniformMatrix4fv(u_ViewMatrix, false, view_matrix.elements)
+    let mvp_matrix_temp = new Matrix4()
+    mvp_matrix_temp.elements = Float32Array.from(mvp_matrix.elements)
+    mvp_matrix_temp.multiply(model_matrix)
+    normal_matrix.setInverseOf(model_matrix)
+    normal_matrix.transpose()
+
+    gl.uniformMatrix4fv(uLoc_ModelMatrix, false, model_matrix.elements);
+    gl.uniformMatrix4fv(uLoc_MvpMatrix, false, mvp_matrix_temp.elements);
+    gl.uniformMatrix4fv(uLoc_NormalMatrix, false, normal_matrix.elements);
     gl.drawArrays(gl.TRIANGLES, 0, this.constructor.n_verts)
   }
 }

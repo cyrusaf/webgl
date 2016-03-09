@@ -15,13 +15,15 @@ function mainLoop() {
   let delta = (Date.now() - last_called)/1000
   last_called = Date.now()
 
+  glInst.entities[0].rotation[0] += 50*delta
+
   if (glInst.entities[1].rotation[0] >= 60) {
     delta_theta = -100*delta
   } else if (glInst.entities[1].rotation[0] <= 0) {
     delta_theta = 100*delta
   }
 
-  for (let entity of glInst.entities) {
+  for (let entity of glInst.entities.slice(1, glInst.entities.length+1)) {
     if (entity.constructor.name != 'Entity') { continue }
 
     entity.rotation[0] += delta_theta
@@ -47,8 +49,8 @@ function main() {
     glInst.entities.push(entity)
   }
 
-  let grid = new Grid()
-  glInst.entities.push(grid)
+  //let grid = new Grid()
+  //glInst.entities.push(grid)
 
   window.requestAnimationFrame(mainLoop)
 
