@@ -12,8 +12,10 @@ function mainLoop() {
     window.requestAnimationFrame(mainLoop)
     return
   }
-  let delta = (Date.now() - last_called)/1000
-  last_called = Date.now()
+
+  let now = Date.now()
+  let delta = (now - last_called)/1000
+  last_called = now
 
   glInst.entities[0].rotation[0] += 50*delta
 

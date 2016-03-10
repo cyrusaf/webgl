@@ -28,7 +28,7 @@ class GL {
     }
 
     // Specify the color for clearing <canvas>
-    gl.clearColor(52/255, 152/255, 219/255, 1.0)
+    gl.clearColor(0, 0, 0, 1.0)
     gl.enable(gl.DEPTH_TEST)
 
     // Set the viewport
@@ -47,6 +47,19 @@ class GL {
     this.model_matrix  = new Matrix4()
     this.mvp_matrix    = new Matrix4()
     this.normal_matrix = new Matrix4()
+
+    // Create lights
+    this.light1 = new Light(0)
+    this.light2 = new Light(1)
+    this.light1.pos = [6.0, 5.0, 5.0]
+    this.light1.ambi = [0.2, 0.2, 0.2]
+    this.light1.diff = [0.4, 0.4, 0.4]
+    this.light1.spec = [0.4, 0.4, 0.4]
+
+    this.light2.pos = [6.0, 5.0, 5.0]
+    this.light2.ambi = [0.2, 0.2, 0.2]
+    this.light2.diff = [0.4, 0.4, 0.4]
+    this.light2.spec = [0.4, 0.4, 0.4]
 
     // Set perpective and send to shaders
     this.resize()
@@ -92,10 +105,15 @@ class GL {
       'precision mediump float;\n' +
       '#endif\n' +
 
-      'uniform vec3 u_Lamp0Pos;\n' + 			// Phong Illum: position
-      'uniform vec3 u_Lamp0Amb;\n' +   		// Phong Illum: ambient
-      'uniform vec3 u_Lamp0Diff;\n' +     // Phong Illum: diffuse
-    	'uniform vec3 u_Lamp0Spec;\n' +			// Phong Illum: specular
+      'struct LampT {\n' +		// Describes one point-like Phong light source
+    	'		vec3 pos;\n' +			// (x,y,z,w); w==1.0 for local light at x,y,z position
+    												    //		   w==0.0 for distant light from x,y,z direction
+    	' 	vec3 ambi;\n' +			// Ia ==  ambient light source strength (r,g,b)
+    	' 	vec3 diff;\n' +			// Id ==  diffuse light source strength (r,g,b)
+    	'		vec3 spec;\n' +			// Is == specular light source strength (r,g,b)
+    	'}; \n' +
+
+      'uniform LampT u_LampSet[2];\n' +
 
       'uniform vec3 u_Ke;\n' +						// Phong Reflectance: emissive
       'uniform vec3 u_Ka;\n' +						// Phong Reflectance: ambient
@@ -110,16 +128,27 @@ class GL {
 
       'void main() {\n' +
       '  vec3 normal = normalize(v_Normal); \n' +
-      '  vec3 lightDirection = normalize(u_Lamp0Pos - v_Position.xyz);\n' +
+      '  vec3 lightDirection[2];\n' +
+      '  lightDirection[0] = normalize(u_LampSet[0].pos - v_Position.xyz);\n' +
+      '  lightDirection[1] = normalize(u_LampSet[1].pos - v_Position.xyz);\n' +
       '  vec3 eyeDirection = normalize(u_eyePosWorld - v_Position.xyz); \n' +
-      '  float nDotL = max(dot(lightDirection, normal), 0.0); \n' +
-      '  vec3 H = normalize(lightDirection + eyeDirection); \n' +
-      '  float nDotH = max(dot(H, normal), 0.0); \n' +
-      '  float e64 = pow(nDotH, float(u_Kshiny));\n' +
+      '  float nDotL[2];\n' +
+      '  nDotL[0] = max(dot(lightDirection[0], normal), 0.0); \n' +
+      '  nDotL[1] = max(dot(lightDirection[1], normal), 0.0); \n' +
+      '  vec3 H[2];\n' +
+      '  H[0] = normalize(lightDirection[0] + eyeDirection); \n' +
+      '  H[1] = normalize(lightDirection[1] + eyeDirection); \n' +
+      '  float nDotH[2];\n' +
+      '  nDotH[0] = max(dot(H[0], normal), 0.0); \n' +
+      '  nDotH[1] = max(dot(H[1], normal), 0.0); \n' +
+      '  float e64[2];\n' +
+      '  e64[0] = pow(nDotH[0], float(u_Kshiny));\n' +
+      '  e64[1] = pow(nDotH[1], float(u_Kshiny));\n' +
       '	 vec3 emissive = u_Ke;' +
-      '  vec3 ambient = u_Lamp0Amb * u_Ka;\n' +
-      '  vec3 diffuse = u_Lamp0Diff * v_Kd * nDotL;\n' +
-      '	 vec3 speculr = u_Lamp0Spec * u_Ks * e64;\n' +
+
+      '  vec3 ambient = (u_LampSet[0].ambi + u_LampSet[1].ambi) * u_Ka;\n' +
+      '  vec3 diffuse = v_Kd * (u_LampSet[0].diff * nDotL[0] + u_LampSet[1].diff * nDotL[1]);\n' +
+      '	 vec3 speculr = u_Ks * (u_LampSet[0].spec * e64[0] + u_LampSet[1].spec * e64[1]);\n' +
       '  gl_FragColor = vec4(emissive + ambient + diffuse + speculr , 1.0);\n' +
       '}\n'
   }
@@ -131,15 +160,6 @@ class GL {
 
   initVertexBuffers() {
     this.uLoc_eyePosWorld = gl.getUniformLocation(gl.program, 'u_eyePosWorld');
-
-    let uLoc_Lamp0Pos   = gl.getUniformLocation(gl.program, 	'u_Lamp0Pos');
-    let uLoc_Lamp0Ambi  = gl.getUniformLocation(gl.program, 	'u_Lamp0Amb');
-    let uLoc_Lamp0Diff  = gl.getUniformLocation(gl.program, 	'u_Lamp0Diff');
-    let uLoc_Lamp0Spec	= gl.getUniformLocation(gl.program,		'u_Lamp0Spec');
-    if( !uLoc_Lamp0Pos || !uLoc_Lamp0Ambi	|| !uLoc_Lamp0Diff || !uLoc_Lamp0Spec	) {
-      console.log('Failed to get the Lamp0 storage locations');
-      return;
-    }
 
     let uLoc_Ke = gl.getUniformLocation(gl.program, 'u_Ke');
   	let uLoc_Ka = gl.getUniformLocation(gl.program, 'u_Ka');
@@ -154,20 +174,6 @@ class GL {
   		return;
   	}
 
-    var lamp0Pos  = new Float32Array(3);	// x,y,z in world coords
-    var	lamp0Ambi = new Float32Array(3);	// r,g,b for ambient illumination
-    var lamp0Diff = new Float32Array(3);	// r,g,b for diffuse illumination
-    var lamp0Spec	= new Float32Array(3);	// r,g,b for specular illumination
-    lamp0Pos.set( [6.0, 5.0, 5.0]);
-    lamp0Ambi.set([0.4, 0.4, 0.4]);
-    lamp0Diff.set([1.0, 1.0, 1.0]);
-    lamp0Spec.set([1.0, 1.0, 1.0]);
-
-    gl.uniform3fv(uLoc_Lamp0Pos, lamp0Pos);
-    gl.uniform3fv(uLoc_Lamp0Ambi, lamp0Ambi);		// ambient
-    gl.uniform3fv(uLoc_Lamp0Diff, lamp0Diff);		// diffuse
-    gl.uniform3fv(uLoc_Lamp0Spec, lamp0Spec);		// Specular
-
     var	matl0_Ke = new Float32Array(3);					// r,g,b for emissive 'reflectance'
     var	matl0_Ka = new Float32Array(3);					// r,g,b for ambient reflectance
     var	matl0_Kd = new Float32Array(3);					// r,g,b for diffuse reflectance
@@ -177,7 +183,7 @@ class GL {
   	matl0_Ka.set([0.6, 0.0, 0.0]);
   	matl0_Kd.set([0.8, 0.0, 0.0]);
   	matl0_Ks.set([0.8, 0.8, 0.8]);
-  	matl0_Kshiny = 16;
+  	matl0_Kshiny = 10;
 
     gl.uniform3fv(uLoc_Ke, matl0_Ke);				// Ke emissive
   	gl.uniform3fv(uLoc_Ka, matl0_Ka);				// Ka ambient
@@ -205,6 +211,8 @@ class GL {
   }
 
   updateCamera() {
+    this.light1.pos = this.camera.pos
+
     let look_at = [this.camera.pos[0], this.camera.pos[1], this.camera.pos[2]]
     look_at[0] += this.camera.dist*Math.sin(this.camera.angle[1])*Math.cos(this.camera.angle[0])
     look_at[2] += this.camera.dist*Math.sin(this.camera.angle[1])*Math.sin(this.camera.angle[0])
